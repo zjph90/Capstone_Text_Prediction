@@ -1,7 +1,8 @@
 # Next Word Prediction using N-Grams with Interpolated Kneser Ney Smoothing
 ---
 
-## <img src="./images/JHU-Logo-Square-Mini_180px.png" alt="Johns Hopkins University" style="width: 50px;"/> Data Science Capstone Project in partnership with <img src="./images/SwiftKey-Logo.png" alt="SwiftKey" style="width: 50px;"/>
+##  Data Science Capstone Project in partnership with SwiftKey
+<img src="./images/JHU-Logo-Square-Mini_180px.png" alt="Johns Hopkins University" style="width: 50px;"/> <img src="./images/SwiftKey-Logo.png" alt="SwiftKey" style="width: 50px;"/>
 
 ---
 
