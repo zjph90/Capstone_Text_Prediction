@@ -89,6 +89,8 @@ To deal with unseen words in the pre-processing a check is made to see if the wo
 
 [My Shiny App](https://jph65.shinyapps.io/Capstone_Predict/)
 
+[My Github Repo](https://github.com/zjph90/Capstone_Text_Prediction)
+
 [HC Corpora](http://www.corpora.heliohost.org/)
 
 [Stanford NLP Course](https://www.coursera.org/course/nlp)

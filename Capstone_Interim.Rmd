@@ -1,0 +1,114 @@
+---
+title: "Data Science Capstone Project - Interim Report"
+author: "John Howard"
+date: "Sunday, May 01, 2016"
+output: html_document
+---
+
+## Introduction
+
+This project is to develop a text prediction algorithm which will offer suggestions for an upcoming word based on the previously entered words. This technology is now widely used in applications such as smartphone keyboards like *SwifKkey*. 
+
+To develop this application we have been provided a comprehensive set of text data from 3 kinds of source on the internet (blogs, news reports and tweets). 
+
+This interim report details progress so far in terms of having downloaded the data, uploaded it into R, cleaned and explored the data and given some preliminary thoughts on how to develop the prediction algorithm.
+
+## Data Cleaning and Exploration
+The data was read into R using the *tm* package.  A *Corpus* was created from the US English subdirectory of the data.
+```{r, cache=TRUE, echo=FALSE, warning=FALSE}
+library(tm)
+library(RWeka)
+```
+
+
+The following cleaning steps were undertaken using the the methods supplied with *tm*
+
+* Remove excessive whitespace.
+* Remove numbers - It was decided that numbers would have little relevance in this prediction app so they were removed.
+* It was decided we would not remove *stop words* as they would be relevant in a prediction app.
+* No stemming was done as this is not appropriate for this use case.
+* The data was converted to lower case. I have some uncertainty here as case will likely be relevant in, say, proper nouns.
+* Punctution was removed. Again this is a dubious step as punctuation may have significance. 
+
+```{r, cache=TRUE}
+C <- Corpus(DirSource("/Temp/final/en_US/"))
+C <- tm_map(C, stripWhitespace)           
+C <- tm_map(C, removeNumbers)           
+C <- tm_map(C, content_transformer(tolower))   
+C <- tm_map(C, removePunctuation)
+```
+
+```{r, echo=FALSE}
+sizes = data.frame(cbind( c('blogs','news','tweets'), c(899288,77259,2360148),c(37562647,2600972,29780591)))
+names(sizes) = c("Source","Lines","Words")
+knitr::kable(sizes, align=c('l','r','r'))
+```
+
+Because of the large size of the volumes it was decided to take a subset of the data for further analysis
+
+```{r, cache=TRUE, warning=FALSE}
+set.seed(1234)
+sample_size = 20000
+blogs <- sample(C$content[[1]]$content, sample_size)
+news <- sample(C$content[[2]]$content, sample_size)
+tweets <- sample(C$content[[3]]$content, sample_size)
+all_sample <- c(blogs,news,tweets)
+sampleC <- Corpus(VectorSource(all_sample))
+```
+
+## N-grams
+
+We would like to get a feel for the most likely Unigrams (single words), Bigrams (pairs of words) and Trigrams (triplets of words) in the dataset. This should be useful to us in determining which words are most likely to follow.
+
+### Unigrams  
+
+```{r, cache=TRUE, warning=FALSE}
+# Use the RWeka tokenizer to generate a Document Term Matrix: 
+UnigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 1, max = 1))
+dtm1 <- DocumentTermMatrix(sampleC, control = list(tokenize = UnigramTokenizer))
+dtm1 <- removeSparseTerms(dtm1,0.9999)
+freq1 <- colSums(as.matrix(dtm1))
+freq1 <- sort(freq1, decreasing = TRUE)
+head(freq1)
+# Histogram of log of frequency due to large range: -
+ggplot2::qplot(log10(freq1), binwidth=0.2, xlab= "Log10 of Frequency", 
+      main = "Histogram of frequencies of 1-grams")
+```
+
+### Bigrams  
+
+```{r, cache=TRUE, warning=FALSE, error=FALSE}
+# Use the RWeka tokenizer to generate a Document Term Matrix: 
+BigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 2, max = 2))
+dtm2 <- DocumentTermMatrix(sampleC, control = list(tokenize = BigramTokenizer))
+dtm2 <- removeSparseTerms(dtm2,0.999)
+freq2 <- colSums(as.matrix(dtm2))
+freq2 <- sort(freq2, decreasing = TRUE)
+head(freq2)
+# Histogram of log of frequency due to large range: -
+ggplot2::qplot(log10(freq2), binwidth=0.1, xlab= "Log10 of Frequency", 
+      main = "Histogram of frequencies of 2-grams")
+```
+
+### Trigrams  
+
+```{r, cache=TRUE, warning=FALSE}
+# Use the RWeka tokenizer to generate a Document Term Matrix: 
+TrigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
+dtm3 <- DocumentTermMatrix(sampleC, control = list(tokenize = TrigramTokenizer))
+dtm3 <- removeSparseTerms(dtm3,0.999)
+freq3 <- colSums(as.matrix(dtm3))
+freq3 <- sort(freq3, decreasing = TRUE)
+head(freq3)
+
+# Histogram of log of frequency due to large range: -
+ggplot2::qplot(log10(freq3), binwidth=0.1, xlab= "Log10 of Frequency", 
+      main = "Histogram of frequencies of 3-grams")
+
+```  
+
+We see that the higher the degree of N-grams the lower the frequencies of high frequency grams. 
+
+## Model Plans
+
+From my research so far which is primarily from "Speech and Language Processing" by Daniel Juransky and James Martin I will probably look to develop a model which uses the distribution of Ngrams (Unigram, Bigram and Trigrams) to provide probability estimates for what the next word could be. I haven't got far with this research but it seems that a "Backoff" algorithm could be useful here and Machine Learning techniques can be applied to optimise parameter settings for any resulting algorithms.
