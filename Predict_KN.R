@@ -92,7 +92,7 @@ Predict_kn <- function(prefix, lower_order=FALSE) {
             W <- table(gsub('^.* ','',names(freqs[[n+1]][ind]))) # Last words
             W <- head(sort(W, decreasing = TRUE),wlimit)
             # Denominator - count all types with prefix as middle terms
-            C__ <- sum(ind)
+            C__ <- sum(ind) 
         }        
         if (C__ == 0) {
             # Prefix is unseen so backoff to lower order with weight of 1
